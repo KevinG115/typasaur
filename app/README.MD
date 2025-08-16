@@ -1,8 +1,10 @@
-# typasaur — JSON → TypeScript Model CLI
+# Typasaur 
+
+### JSON → TypeScript Model CLI
 
 Convert raw JSON into clean, readable TypeScript types or interfaces in seconds.
 
-![alt text]()
+![alt text](https://raw.githubusercontent.com/KevinG115/typasaur/main/app/assets/Typasaur.png)
 
 ## Features
 
@@ -20,12 +22,6 @@ Convert raw JSON into clean, readable TypeScript types or interfaces in seconds.
 
 ```bash
 npm install -g typasaur
-```
-
-Or as a dev dependency:
-
-```bash
-npm install -D typasaur
 ```
 
 ## Usage
