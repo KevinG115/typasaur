@@ -35,6 +35,6 @@
   ],
   "scripts": {
     "start": "node src/typasaur.js",
-    "prepublishOnly": "node -e \"require('fs').accessSync('app/typasaur.js'); console.log('CLI entry ok')\""
+    "prepublishOnly": "node -e \"require('fs').accessSync('src/typasaur.js'); console.log('CLI entry ok')\""
   }
 }
