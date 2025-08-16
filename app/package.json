@@ -1,0 +1,28 @@
+{
+  "name": "typasaur",
+  "version": "0.1.0",
+  "bin": {
+    "typasaur": "bin/typasaur"
+  },
+  "type": "commonjs",
+  "description": "A CLI tool that converts JSON into a TypeScript interface or type.",
+  "keywords": [
+    "json",
+    "typescript",
+    "cli",
+    "models",
+    "codegen"
+  ],
+  "license": "MIT",
+  "author": "Your Name",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}
