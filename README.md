@@ -8,7 +8,7 @@
 
 Convert raw JSON into clean, readable TypeScript types or interfaces in seconds.
 
-![alt text](./app/assets/Typasaur.png)
+<img src="./app/assets/Typasaur.png" width="300">
 
 ## Features
 
