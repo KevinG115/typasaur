@@ -1,28 +1,40 @@
 {
   "name": "typasaur",
   "version": "0.1.0",
-  "bin": {
-    "typasaur": "bin/typasaur"
-  },
+  "description": "Convert JSON to TypeScript types/interfaces from the CLI",
   "type": "commonjs",
-  "description": "A CLI tool that converts JSON into a TypeScript interface or type.",
+  "main": "src/core.js",
+  "bin": {
+    "typasaur": "src/typasaur.js"
+  },
   "keywords": [
-    "json",
     "typescript",
     "cli",
-    "models",
-    "codegen"
+    "json",
+    "codegen",
+    "types",
+    "interfaces"
   ],
   "license": "MIT",
-  "author": "Your Name",
+  "author": "Kevin Gleeson",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KevinG115/typasaur.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KevinG115/typasaur/issues"
+  },
+  "homepage": "https://github.com/KevinG115/typasaur#readme",
   "engines": {
-    "node": ">=18"
+    "node": ">=14"
   },
   "files": [
-    "bin",
-    "src"
+    "app/",
+    "README.md",
+    "LICENSE"
   ],
-  "devDependencies": {
-    "prettier": "^3.6.2"
+  "scripts": {
+    "start": "node src/typasaur.js",
+    "prepublishOnly": "node -e \"require('fs').accessSync('app/typasaur.js'); console.log('CLI entry ok')\""
   }
 }
