@@ -9,7 +9,7 @@
 
 Convert raw JSON into clean, readable TypeScript types or interfaces in seconds.
 
-<img src="https://raw.githubusercontent.com/KevinG115/typasaur/main/app/assets/Typasaur.png " width="300">
+![alt text](https://raw.githubusercontent.com/KevinG115/typasaur/main/app/assets/Typasaur.png ) 
 
 ## Features
 
