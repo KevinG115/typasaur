@@ -74,7 +74,7 @@ async function main() {
     // 6) Infer internal type tree
     const inferredTypeTree = inferTypeFromValue(parsedJsonValue, options);
 
-    // 7) Render TypeScript
+    // 7) Render TypeScript (uses field-key-based naming)
     const tsText = renderTypescriptFromTree({
       rootTypeName: userProvidedModelName,
       useInterfaceKeyword: !!args.interface,
@@ -180,7 +180,7 @@ function unifyTypesMany(nodes) {
 /**
  * Unify two type nodes.
  * - any dominates
- * - unions flattened/deduped
+ * - unions flattened/deduped (singletons collapse)
  * - objects unify by field, required only if required on both sides
  * - arrays unify item types
  * - strings merge date flags and enum sets
@@ -268,14 +268,15 @@ function areTypesEqual(a, b) {
 /**
  * Convert internal type tree to TypeScript.
  * - Header with ASCII dinosaur
- * - Nested types named from JSON keys (Profile, Project, Settings, Notifications, etc.)
+ * - Nested types named from JSON field keys (preserve key casing; uppercase first char)
+ *   e.g. GlossDef, GlossEntry, GlossList, GlossDiv, Glossary
  * - Root name kept exactly as entered
  * - Arrays of unions are parenthesized: ("a" | "b")[]
  */
 function renderTypescriptFromTree({ rootTypeName, useInterfaceKeyword, rootTypeTree }) {
   const namedTypeDefinitions = [];
-  const objectNodeToTypeName = new Map();
-  const usedTypeNames = new Set([rootTypeName]);
+  const objectNodeToTypeName = new Map(); // object node -> generated name
+  const usedTypeNames = new Set([rootTypeName]); // avoid collisions with root
   const typeKeyword = useInterfaceKeyword ? "interface" : "type";
 
   function nextAvailableTypeName(baseName) {
@@ -290,10 +291,12 @@ function renderTypescriptFromTree({ rootTypeName, useInterfaceKeyword, rootTypeT
     return finalName;
   }
 
+  // Preserve existing key case, just ensure first character is uppercase.
+  // (So "GlossDef" stays "GlossDef", "settings" -> "Settings", "projects" -> "Projects" then singularized when used for array items.)
   function nameFromJsonKey(jsonKey, isArrayItem = false) {
-    const base = isArrayItem ? singularizeWord(jsonKey || "Item") : (jsonKey || "Model");
-    const pascal = toPascalCase(base);
-    return pascal || "Model";
+    const baseRaw = isArrayItem ? singularizeWord(jsonKey || "Item") : (jsonKey || "Model");
+    if (!baseRaw) return "Model";
+    return baseRaw[0].toUpperCase() + baseRaw.slice(1);
   }
 
   function ensureNamedTypeForObject(objectNode, jsonKeyForThisObject, isArrayItem = false) {
@@ -307,53 +310,49 @@ function renderTypescriptFromTree({ rootTypeName, useInterfaceKeyword, rootTypeT
   }
 
   function renderArrayType(itemNode, parentArrayJsonKey) {
-    const itemRendered = renderTypeNode(itemNode, parentArrayJsonKey, true);
+    const inner = renderTypeNode(itemNode, parentArrayJsonKey, true);
     const needsParens =
       itemNode.kind === "union" ||
       (itemNode.kind === "string" && itemNode.enumValues && itemNode.enumValues.length > 0);
-    return needsParens ? `(${itemRendered})[]` : `${itemRendered}[]`;
+    return needsParens ? `(${inner})[]` : `${inner}[]`;
   }
 
-  function renderTypeNode(typeNode, parentJsonKey, inArrayContext = false) {
+  function renderTypeNode(typeNode, parentJsonKey, inArray = false) {
     switch (typeNode.kind) {
-      case "any":
-        return "any";
-      case "number":
-        return "number";
-      case "boolean":
-        return "boolean";
+      case "any":     return "any";
+      case "number":  return "number";
+      case "boolean": return "boolean";
       case "string":
         if (typeNode.enumValues && typeNode.enumValues.length) {
-          return typeNode.enumValues.map((lit) => JSON.stringify(lit)).join(" | ");
+          return typeNode.enumValues.map((v) => JSON.stringify(v)).join(" | ");
         }
         return typeNode.isDate ? "string | Date" : "string";
       case "union":
-        return typeNode.types.map((t) => renderTypeNode(t, parentJsonKey, inArrayContext)).join(" | ");
+        return typeNode.types.map((t) => renderTypeNode(t, parentJsonKey, inArray)).join(" | ");
       case "array":
         return renderArrayType(typeNode.items, parentJsonKey);
       case "object": {
         const lines = ["{"];
 
         const sorted = [...typeNode.fields.entries()].sort(([a], [b]) => a.localeCompare(b));
-
         for (const [fieldName, fieldInfo] of sorted) {
           const optional = fieldInfo.required ? "" : "?";
           const safeKey = isValidTypescriptIdentifier(fieldName) ? fieldName : JSON.stringify(fieldName);
 
-          let fieldTs;
+          let tsType;
           if (fieldInfo.type.kind === "object") {
-            const childTypeName = ensureNamedTypeForObject(fieldInfo.type, fieldName, false);
-            fieldTs = childTypeName;
+            const child = ensureNamedTypeForObject(fieldInfo.type, fieldName, false);
+            tsType = child;
           } else if (fieldInfo.type.kind === "array" && fieldInfo.type.items.kind === "object") {
-            const itemTypeName = ensureNamedTypeForObject(fieldInfo.type.items, fieldName, true);
-            fieldTs = `${itemTypeName}[]`;
+            const itemName = ensureNamedTypeForObject(fieldInfo.type.items, fieldName, true);
+            tsType = `${itemName}[]`;
           } else if (fieldInfo.type.kind === "array") {
-            fieldTs = renderArrayType(fieldInfo.type.items, fieldName);
+            tsType = renderArrayType(fieldInfo.type.items, fieldName);
           } else {
-            fieldTs = renderTypeNode(fieldInfo.type, fieldName);
+            tsType = renderTypeNode(fieldInfo.type, fieldName);
           }
 
-          lines.push(`  ${safeKey}${optional}: ${fieldTs};`);
+          lines.push(`  ${safeKey}${optional}: ${tsType};`);
         }
 
         lines.push("}");
@@ -362,7 +361,7 @@ function renderTypescriptFromTree({ rootTypeName, useInterfaceKeyword, rootTypeT
     }
   }
 
-  const headerBlock = `
+  const header = `
 /**
  * Generated by typasaur
  *
@@ -379,7 +378,7 @@ function renderTypescriptFromTree({ rootTypeName, useInterfaceKeyword, rootTypeT
   const rootBody = renderTypeNode(rootTypeTree, rootTypeName);
   const rootDecl = `export ${typeKeyword} ${rootTypeName} = ${rootBody};`;
 
-  return [headerBlock, ...namedTypeDefinitions, rootDecl].join("\n\n") + "\n";
+  return [header, ...namedTypeDefinitions, rootDecl].join("\n\n") + "\n";
 }
 
 /* ============================================================================
@@ -502,7 +501,7 @@ function promptJsonUntilValid(messageText) {
           resolve(buffer);
           return;
         } catch {
-          // keep reading until it's valid or user closes input
+          // keep reading until valid or user closes input
         }
       }
     });
@@ -556,15 +555,6 @@ function singularizeWord(word) {
   if (/xes$|zes$|ches$|shes$/i.test(text)) return text.replace(/es$/i, "");
   if (/s$/i.test(text) && !/ss$/i.test(text)) return text.slice(0, -1);
   return text || "Item";
-}
-function toPascalCase(input) {
-  return String(input)
-    .replace(/[#@~`^$%&*()+={}$begin:math:display$$end:math:display$|\\:;"'<>,.?/!-]/g, " ")
-    .replace(/[^a-zA-Z0-9]+/g, " ")
-    .trim()
-    .split(/\s+/)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join("");
 }
 function stringifyMaybeError(e) {
   if (!e) return "";
