@@ -1,4 +1,3 @@
-// typasaur core: JSON -> TypeScript generator
 const fs = require("fs");
 const path = require("path");
 

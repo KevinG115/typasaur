@@ -2,6 +2,11 @@
 
 ### JSON → TypeScript Model CLI
 
+[![npm version](https://img.shields.io/npm/v/typasaur.svg)](https://www.npmjs.com/package/typasaur)
+[![npm downloads](https://img.shields.io/npm/dw/typasaur.svg)](https://www.npmjs.com/package/typasaur)
+[![license](https://img.shields.io/npm/l/typasaur.svg)](./LICENSE)
+
+
 Convert raw JSON into clean, readable TypeScript types or interfaces in seconds.
 
 ![alt text](https://raw.githubusercontent.com/KevinG115/typasaur/main/app/assets/Typasaur.png)
@@ -79,6 +84,25 @@ export type User = {
 ## Contributing
 
 PRs welcome! Ideas: smarter naming heuristics, config file, VS Code extension.
+
+---
+
+## Future Enhancements
+
+- **Option to generate `interface` instead of `type`** (CLI flag)  
+- **Config file support** (`typasaur.config.json`) to set defaults  
+- **Smarter type inference**  
+  - Detect `UUID` patterns → `string` but with a `Uuid` alias  
+  - Detect currency/decimal numbers → `number` but optionally `Decimal`  
+- **Custom naming strategies** (PascalCase, camelCase, etc.)  
+- **Nested file output** → split models into multiple `.ts` files instead of one big file  
+- **Array union collapsing** → automatically detect and compress unions of string literals  
+- **VS Code extension** → right-click JSON → *Generate TypeScript Interface*  
+- **Web playground** → paste JSON in browser → copy TS interface  
+- **Schema support** → convert JSON Schema → TS  
+- **Testing framework integration** → option to also generate fake/mock data for testing  
+
+---
 
 ## License
 
