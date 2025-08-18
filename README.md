@@ -127,15 +127,18 @@ Steps for contributing:
 
 ## Future Enhancements
 
-- **Config file support** (`typasaur.config.json`) to set defaults  
-  - Detect `UUID` patterns → `string` but with a `Uuid` alias  
-  - Detect currency/decimal numbers → `number` but optionally `Decimal`  
 - **Nested file output** → split models into multiple `.ts` files instead of one big file  
-- **Array union collapsing** → automatically detect and compress unions of string literals  
+- **JSON → Java**  
+  - Generate POJOs with optional Lombok annotations.  
+- **JSON → Rust**  
+  - Generate `struct`s with optional `serde` annotations for serialization.  
+- **JSON → Python**  
+  - Generate Pydantic models (ideal for FastAPI and modern Python backends).  
+- **Java → TypeScript**  
+  - Translate existing Java POJOs into matching TypeScript interfaces.  
+  - Config file support to specify which POJOs to include for translation.  
 - **VS Code extension** → right-click JSON → *Generate TypeScript Interface*  
 - **Web playground** → paste JSON in browser → copy TS interface  
-- **Schema support** → convert JSON Schema → TS  
-- **Testing framework integration** → option to also generate fake/mock data for testing  
 
 ---
 
