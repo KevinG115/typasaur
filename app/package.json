@@ -36,5 +36,8 @@
   "scripts": {
     "start": "node src/typasaur.js",
     "prepublishOnly": "node -e \"require('fs').accessSync('src/typasaur.js'); console.log('CLI entry ok')\""
+  },
+  "dependencies": {
+    "posthog-node": "^5.7.0"
   }
 }

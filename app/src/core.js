@@ -1,5 +1,11 @@
 const fs = require("fs");
 const path = require("path");
+const telemetry = require("./telemetry.js");
+
+
+
+// Ask once per machine if telemetry is allowed
+
 
 /* ============================================================================
  * Entry
@@ -16,6 +22,14 @@ async function main() {
   const argvList = process.argv.slice(2);
   const args = parseCommandLineArguments(argvList);
   const isTty = process.stdin.isTTY;
+
+  // After you compute `args` from process.argv:
+  args._rawArgv = process.argv.slice(2); // so telemetry can scrub flag names
+
+  const telemetryAllowed = await telemetry.getOrEstablishTelemetryPreference(args);
+  if (telemetryAllowed) {
+    telemetry.captureRunEvent(args);
+  }
 
   printUsage(args);
   printBanner(args);

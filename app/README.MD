@@ -89,12 +89,9 @@ PRs welcome! Ideas: smarter naming heuristics, config file, VS Code extension.
 
 ## Future Enhancements
 
-- **Option to generate `interface` instead of `type`** (CLI flag)  
 - **Config file support** (`typasaur.config.json`) to set defaults  
-- **Smarter type inference**  
   - Detect `UUID` patterns → `string` but with a `Uuid` alias  
   - Detect currency/decimal numbers → `number` but optionally `Decimal`  
-- **Custom naming strategies** (PascalCase, camelCase, etc.)  
 - **Nested file output** → split models into multiple `.ts` files instead of one big file  
 - **Array union collapsing** → automatically detect and compress unions of string literals  
 - **VS Code extension** → right-click JSON → *Generate TypeScript Interface*  
