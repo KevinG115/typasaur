@@ -114,7 +114,7 @@ export type User = {
 
 ## Contributing
 
-PRs welcome! Ideas: smarter naming heuristics, config file, VS Code extension.
+PRs welcome!
 
 Steps for contributing:
 1. Fork the repo
