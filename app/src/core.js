@@ -17,6 +17,7 @@ async function main() {
   const args = parseCommandLineArguments(argvList);
   const isTty = process.stdin.isTTY;
 
+  printUsage(args);
   printBanner(args);
 
   try {
@@ -269,7 +270,6 @@ function areTypesEqual(a, b) {
  * Convert internal type tree to TypeScript.
  * - Header with ASCII dinosaur
  * - Nested types named from JSON field keys (preserve key casing; uppercase first char)
- *   e.g. GlossDef, GlossEntry, GlossList, GlossDiv, Glossary
  * - Root name kept exactly as entered
  * - Arrays of unions are parenthesized: ("a" | "b")[]
  */
@@ -292,7 +292,6 @@ function renderTypescriptFromTree({ rootTypeName, useInterfaceKeyword, rootTypeT
   }
 
   // Preserve existing key case, just ensure first character is uppercase.
-  // (So "GlossDef" stays "GlossDef", "settings" -> "Settings", "projects" -> "Projects" then singularized when used for array items.)
   function nameFromJsonKey(jsonKey, isArrayItem = false) {
     const baseRaw = isArrayItem ? singularizeWord(jsonKey || "Item") : (jsonKey || "Model");
     if (!baseRaw) return "Model";
@@ -335,6 +334,7 @@ function renderTypescriptFromTree({ rootTypeName, useInterfaceKeyword, rootTypeT
         const lines = ["{"];
 
         const sorted = [...typeNode.fields.entries()].sort(([a], [b]) => a.localeCompare(b));
+
         for (const [fieldName, fieldInfo] of sorted) {
           const optional = fieldInfo.required ? "" : "?";
           const safeKey = isValidTypescriptIdentifier(fieldName) ? fieldName : JSON.stringify(fieldName);
@@ -409,6 +409,29 @@ ${white}       JSON to TypeScript Model CLI${reset}
   console.log(block);
 }
 
+function printUsage(parsedArgs) {
+  const useColor = !parsedArgs["no-color"];
+  const cyan = useColor ? "\x1b[36m" : "";
+  const yellow = useColor ? "\x1b[33m" : "";
+  const reset = useColor ? "\x1b[0m" : "";
+
+  console.log(`
+${cyan}Usage:${reset}
+  typasaur [options]
+
+${cyan}Options:${reset}
+  ${cyan}--model-name${reset} ${yellow}<Name>${reset}       Name of the root type (e.g., User, OrderItem)
+  ${cyan}--input-json${reset} ${yellow}<file>${reset}       Path to a JSON file to generate from
+  ${cyan}--out${reset} ${yellow}<file>${reset}              Output TypeScript file (default: <model-name>.ts)
+  ${cyan}--interface${reset}               Use 'interface' instead of 'type'
+  ${cyan}--no-dates${reset}                Do not infer ISO strings as Date
+  ${cyan}--string-enum-min${reset} ${yellow}<n>${reset}     Minimum unique string values to form a union (default: 2)
+  ${cyan}--string-enum-max${reset} ${yellow}<n>${reset}     Maximum unique string values to form a union (default: 12)
+  ${cyan}--no-banner${reset}               Disable ASCII dinosaur banner
+  ${cyan}--no-color${reset}                Disable colored output
+`);
+}
+
 function logInfo(options, message) {
   if (options && options.disableColorOutput) console.log(message);
   else console.log("\x1b[32m%s\x1b[0m", message);
@@ -458,19 +481,30 @@ function promptSingleLine(questionText) {
 }
 
 /**
- * Read JSON from user until it's valid and balanced. Generates as soon as JSON parses.
- * Clear error messages are printed by main() if parse fails at the end.
+ * Interactive JSON input with multiple end mechanisms:
+ * - Type ":end" on its own line
+ * - Or wrap input in ``` code fences and close them
+ * - Or press Enter on a blank line once the JSON is valid & balanced
+ * - EOF still works where supported (Ctrl+D on macOS/Linux, Ctrl+Z+Enter on Windows)
  */
 function promptJsonUntilValid(messageText) {
   return new Promise((resolve) => {
+    const platform = process.platform;
+    const eofHint = platform === "win32" ? "Ctrl+Z then Enter" : "Ctrl+D";
+
     console.log(messageText);
+    console.log(
+      `(Tip: multi-line paste is fine. End with :end on its own line, or close a \`\`\` code fence, or press Enter on an empty line after valid JSON. ${eofHint} may also work.)`
+    );
+
     const readline = require("readline");
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
 
     let buffer = "";
-    let depth = 0;        // {} and [] balance
-    let inString = false; // within "
-    let escaped = false;  // previous char was backslash
+    let depth = 0;         // {} [] balance
+    let inString = false;  // inside "..."
+    let escaped = false;   // previous char was backslash
+    let inFence = false;   // between ``` ... ```
 
     function updateBalance(chunk) {
       for (let i = 0; i < chunk.length; i++) {
@@ -489,29 +523,58 @@ function promptJsonUntilValid(messageText) {
       }
     }
 
+    function bufferIsValidJson() {
+      try { JSON.parse(buffer); return true; } catch { return false; }
+    }
+
     rl.on("line", (line) => {
+      const trimmed = line.trim();
+
+      // 1) Sentinel end tokens
+      if (trimmed === ":end" || trimmed === "END" || trimmed === "EOF") {
+        rl.close();
+        return;
+      }
+
+      // 2) Code fences: open/close with ```
+      if (trimmed === "```") {
+        if (!inFence) {
+          inFence = true;
+          buffer = ""; // start fresh inside fence
+        } else {
+          inFence = false;
+          rl.close(); // close fence => finish
+        }
+        return;
+      }
+
+      // 3) Append line
       const chunk = (buffer ? "\n" : "") + line;
       buffer += chunk;
-      updateBalance(chunk);
 
-      if (depth === 0 && !inString) {
-        try {
-          JSON.parse(buffer);
-          rl.close();
-          resolve(buffer);
-          return;
-        } catch {
-          // keep reading until valid or user closes input
+      // While inside code fence, skip balance checks; wait for closing fence
+      if (!inFence) {
+        updateBalance(chunk);
+
+        // 4) If JSON is valid & balanced, allow a blank line to finish
+        if (depth === 0 && !inString) {
+          if (trimmed === "" && bufferIsValidJson()) {
+            rl.close();
+            return;
+          }
+          // 5) Auto-finish immediately when it parses cleanly (user pasted all at once)
+          if (bufferIsValidJson()) {
+            rl.close();
+            return;
+          }
         }
       }
     });
 
     rl.on("close", () => {
-      // Final attempt; main() will print a clear error if invalid
+      // Final return of whatever we have; caller will validate and error if invalid
       resolve(buffer);
     });
-
-    process.stdout.write("(Tip: multi-line paste is fine. Press Enter after the last line, or Ctrl+D to finish.)\n");
   });
 }
 
