@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const telemetry = require("./telemetry.js");
+// const telemetry = require("./telemetry.js");
 
 
 
@@ -24,12 +24,12 @@ async function main() {
   const isTty = process.stdin.isTTY;
 
   // After you compute `args` from process.argv:
-  args._rawArgv = process.argv.slice(2); // so telemetry can scrub flag names
+  // args._rawArgv = process.argv.slice(2); // so telemetry can scrub flag names
 
-  const telemetryAllowed = await telemetry.getOrEstablishTelemetryPreference(args);
-  if (telemetryAllowed) {
-    telemetry.captureRunEvent(args);
-  }
+  // const telemetryAllowed = await telemetry.getOrEstablishTelemetryPreference(args);
+  // if (telemetryAllowed) {
+  //   telemetry.captureRunEvent(args);
+  // }
 
   printUsage(args);
   printBanner(args);
