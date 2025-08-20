@@ -5,7 +5,7 @@
   "type": "commonjs",
   "main": "src/core.js",
   "bin": {
-    "typasaur": "src/typasaur.js"
+    "typasaur": "typasaur.js"
   },
   "keywords": [
     "typescript",
@@ -34,8 +34,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "start": "node src/typasaur.js",
-    "prepublishOnly": "node -e \"require('fs').accessSync('src/typasaur.js'); console.log('CLI entry ok')\""
+    "start": "node typasaur.js",
+    "prepublishOnly": "node -e \"require('fs').accessSync('typasaur.js'); console.log('CLI entry ok')\""
   },
   "dependencies": {
     "posthog-node": "^5.7.0"
