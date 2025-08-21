@@ -1,0 +1,47 @@
+{
+  "id": 12345,
+  "username": "kevin_g",
+  "email": "kevin@example.com",
+  "profile": {
+    "firstName": "Kevin",
+    "lastName": "Gleeson",
+    "bio": null,
+    "dateOfBirth": "1990-07-21",
+    "contacts": [
+      { "type": "phone", "value": "+353123456789", "isPrimary": true },
+      { "type": "email", "value": "alt@example.com", "isPrimary": false }
+    ],
+    "social": {
+      "twitter": "https://twitter.com/kevin",
+      "github": "https://github.com/Fidelity-Red",
+      "linkedin": null
+    }
+  },
+  "roles": ["admin", "editor", "viewer"],
+  "projects": [
+    {
+      "id": "p-001",
+      "title": "Typasaur CLI",
+      "status": "active",
+      "tags": ["typescript", "cli", "open-source"],
+      "contributors": [
+        { "userId": 789, "joinedAt": "2025-01-05T10:15:00Z", "role": "maintainer" },
+        { "userId": 790, "joinedAt": "2025-02-10T08:30:00Z", "role": "contributor" }
+      ]
+    },
+    {
+      "id": "p-002",
+      "title": "Web Playground",
+      "status": "planning",
+      "tags": ["angular", "monaco", "frontend"],
+      "contributors": []
+    }
+  ],
+  "settings": {
+    "theme": "dark",
+    "language": "en",
+    "notifications": { "email": true, "sms": false, "push": null }
+  },
+  "createdAt": "2025-08-17T12:34:56Z",
+  "updatedAt": null
+}

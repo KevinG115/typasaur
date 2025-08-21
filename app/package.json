@@ -34,8 +34,16 @@
     "LICENSE"
   ],
   "scripts": {
-    "start": "node typasaur.js",
-    "prepublishOnly": "node -e \"require('fs').accessSync('typasaur.js'); console.log('CLI entry ok')\""
+    "start": "node src/typasaur.js",
+    "prepublishOnly": "node -e \"require('fs').accessSync('typasaur.js'); console.log('CLI entry ok')\"",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:update": "jest -u"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "roots": ["<rootDir>/src"],
+    "moduleFileExtensions": ["js", "json"]
   },
   "dependencies": {
     "posthog-node": "^5.7.0"
