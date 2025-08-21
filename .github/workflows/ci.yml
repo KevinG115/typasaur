@@ -24,6 +24,9 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
+      - name: Go to app directory
+        run: cd app
+
       - name: Install dependencies
         run: ls
 
