@@ -4,9 +4,13 @@ const path = require("path");
 const { parseArgs } = require("./args");
 const { printBanner, printUsage, logInfo, printError } = require("./banner");
 const { promptSingleLine, promptJsonUntilValid, readAllFromStdin } = require("./input");
-const { inferTypeFromValue } = require("./infer");
-const { renderTypescriptFromTree } = require("./renderers/typescript");
-// const telemetry = require("./telemetry");
+// BEFORE (example)
+// const { inferTypeFromValue } = require("./infer");
+// const { renderTypescriptFromTree } = require("./renderers/typescript");
+
+// AFTER (use compiled TS output)
+const { inferTypeFromValue } = require("../dist/infer");
+const { renderTypescriptFromTree } = require("../dist/renderers/typescript");
 
 async function main() {
   const argv = process.argv.slice(2);

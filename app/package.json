@@ -1,6 +1,6 @@
 {
   "name": "typasaur",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Convert JSON to TypeScript types/interfaces from the CLI",
   "type": "commonjs",
   "main": "src/core.js",
@@ -35,27 +35,23 @@
   ],
   "scripts": {
     "start": "node src/typasaur.js",
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -w",
     "prepublishOnly": "node -e \"require('fs').accessSync('typasaur.js'); console.log('CLI entry ok')\"",
-    "test": "jest",
+    "test": "jest --runInBand",
     "test:watch": "jest --watch",
     "test:update": "jest -u",
     "prepare": "husky install"
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "roots": [
-      "<rootDir>/src"
-    ],
-    "moduleFileExtensions": [
-      "js",
-      "json"
-    ]
   },
   "dependencies": {
     "posthog-node": "^5.7.0"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.12.0",
     "husky": "^9.1.7",
-    "jest": "^30.0.5"
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.1",
+    "typescript": "^5.5.0"
   }
 }
